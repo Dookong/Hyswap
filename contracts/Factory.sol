@@ -2,7 +2,8 @@
 pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
-import "./Exchange.sol";
+import "./interfaces/IPairExchange.sol";
+import "./PairExchange.sol";
 
 contract Factory{
     event PairCreated(address indexed token0, address indexed token1, address pair);
@@ -21,17 +22,19 @@ contract Factory{
     function createTokenPair(address _token1, address _token2) public returns (address pair) {
         require(_token1 != address(0));
         require(_token2 != address(0));
-        require(tokenPair[_token1][_token2] == address(0)); // pool이 이미 존재하는지 확인
+        require(_token1 != _token2);
+        (address token1, address token2) = _token1 < _token2 ? (_token1, _token2) : (_token2, _token1);
+        require(tokenPair[token1][token2] == address(0)); // pool이 이미 존재하는지 확인
 
-        bytes memory bytecode = type(Exchange).creationCode;
-        bytes32 salt = keccak256(abi.encodePacked(_token1, _token2));  
+        bytes memory contractByteCode = type(PairExchange).creationCode;
+        bytes32 salt = keccak256(abi.encodePacked(token1, token2));  
         assembly {
-            pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
+            pair := create2(0, add(contractByteCode, 32), mload(contractByteCode), salt)
         }
-
-        tokenPair[_token1][_token2] = pair;
-        tokenPair[_token2][_token1] = pair;
-        emit PairCreated(_token1, _token2, pair);
+        pair = address(new PairExchange(token1, token2));// 제대로 작동할지 모르겠음.
+        tokenPair[token1][token2] = pair;
+        tokenPair[token1][token2] = pair;
+        emit PairCreated(token1, token2, pair);
     }
 
     function setFeeAddress(address _feeAddress) external {

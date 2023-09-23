@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./interfaces/IFactory.sol";
 import "./interfaces/IExchange.sol";
 
-contract Exchange is ERC20{
+contract Exchange is ERC20{ // legacy
     // Events
     event TokenPurchase(address indexed buyer, uint256 indexed eth_sold, uint256 indexed tokens_bought);
     event EthPurchase(address indexed buyer, uint256 indexed tokens_sold, uint256 indexed eth_bought);
