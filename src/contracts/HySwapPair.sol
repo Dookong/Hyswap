@@ -67,7 +67,7 @@ contract HySwapPair is ERC20{
     }
 
     function getReserves() public view returns (uint112, uint112, uint32){
-        return (reserve0, reserve1, 0);
+        return (reserve0, reserve1, uint32(block.timestamp));
     }
 
     function _update(uint balance0, uint balance1, uint112 reserve0_, uint112 reserve1_) private {

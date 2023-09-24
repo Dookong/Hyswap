@@ -44,7 +44,11 @@ contract PairOracleTest is Test{
         price1 = reserve1 > 0 ? (reserve0 * uint256(UQ112x112.Q112)) / reserve1 : 0;
     }
 
-    function testPrice() public{
+    function testPrice() public {
+        token0.transfer(address(pair), 1 ether);
+        token1.transfer(address(pair), 1 ether);
+        pair.mint(address(this)); //LP토큰 +1
+
         vm.warp(0);
         pair.sync();
         assertNotEq(pair.price0CumulativeLast(), 0, "is zero");
@@ -56,7 +60,7 @@ contract PairOracleTest is Test{
         assertNotEq(pair.price0CumulativeLast(), 0, "is zero");
     }
 
-    function dtestCumulativePrices() public {
+    function testCumulativePrices() public {
         vm.warp(0);
         token0.transfer(address(pair), 1 ether);
         token1.transfer(address(pair), 1 ether);
