@@ -81,7 +81,7 @@ contract HySwapPair is ERC20, IHySwapPair {
     }
 
     function getReserves() public view returns (uint112, uint112, uint32){
-        return (reserve0, reserve1, 0);
+        return (reserve0, reserve1, uint32(block.timestamp));
     }
 
     function _update(uint balance0, uint balance1, uint112 reserve0_, uint112 reserve1_) private {
@@ -169,5 +169,10 @@ contract HySwapPair is ERC20, IHySwapPair {
 
         if (amount0Out > 0) _safeTransfer(token0, to, amount0Out); // out만큼 지급
         if (amount1Out > 0) _safeTransfer(token1, to, amount1Out);
+    }
+
+    function sync() public {
+        (uint112 reserve0_, uint112 reserve1_, ) = getReserves();
+        _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0_, reserve1_);
     }
 }
