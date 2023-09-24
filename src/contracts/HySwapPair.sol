@@ -9,6 +9,9 @@ import "../libraries/Math.sol";
 error InsufficientLiquidityMinted();
 error InsufficientLiquidityBurned();
 error TransferFailed();
+error InsufficientOutputAmount();
+error InsufficientLiquidity();
+error InvalidK();
 
 contract HySwapPair is ERC20{
     uint constant MIN_LIQUIDITY = 1000;
@@ -71,9 +74,9 @@ contract HySwapPair is ERC20{
         uint balance0 = IERC20(token0).balanceOf(address(this)); //pair 컨트랙트가 가지고 있는 token0의 개수
         uint balance1 = IERC20(token1).balanceOf(address(this)); //pair 컨트랙트가 가지고 있는 token1의 개수
 
-        /** 
-            원래는 msg.sender가 보유한 수량을 그대로 사용했으나, 이렇게 하면 sender의 명시적 동의가 없기 때문에 버그 발생함.
-            호출자가 상위 레벨에서 pair 컨트랙트에게 lp token을 보내면, 그 수량 그대로 사용하는 것으로 대체.
+        /*
+            원래는 msg.sender가 보유한 수량을 그대로 사용했으나, 이렇게 하면 sender의 명시적 동의가 없기 때문에 위험하다.
+            호출자가 상위 레벨에서 pair 컨트랙트에게 lp token을 보내면, 그 수량을 그대로 사용하는 것으로 대체한다.
         */
         uint liquidity = balanceOf[address(this)]; // pair 컨트랙트가 보유한 lp토큰의 개수 = high level에서 호출자가 보유한 lp토큰의 개수
 
@@ -91,5 +94,28 @@ contract HySwapPair is ERC20{
         balance1 = IERC20(token1).balanceOf(address(this));
         (uint112 reserve0_, uint112 reserve1_, ) = getReserves();
         _update(balance0, balance1, reserve0_, reserve1_); //풀에 잔존하는 토큰 개수 업데이트
+    }
+
+    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external{
+        if (amount0Out == 0 && amount1Out == 0)
+            revert InsufficientOutputAmount();
+        
+        (uint112 reserve0_, uint112 reserve1_, ) = getReserves(); // 풀에 예치되어 있는 토큰 개수
+
+        if (amount0Out > reserve0_ || amount1Out > reserve1_) // 내줘야 할 양보다 예치된 양이 적으면 에러 발생
+            revert InsufficientLiquidity();
+        
+        // 스왑 후 잔고 = 기존 잔고 - out
+        uint balance0 = IERC20(token0).balanceOf(address(this)) - amount0Out;
+        uint balance1 = IERC20(token1).balanceOf(address(this)) - amount1Out;
+
+        //Constant Product 체크 -> 스왑 후의 K >= 스왑 전의 K
+        if (balance0 * balance1 < uint256(reserve0_) * uint256(reserve1_))
+            revert InvalidK();
+        
+        _update(balance0, balance1, reserve0_, reserve1_); //풀에 잔존하는 토큰 개수 업데이트
+
+        if (amount0Out > 0) _safeTransfer(token0, to, amount0Out); // out만큼 지급
+        if (amount1Out > 0) _safeTransfer(token1, to, amount1Out);
     }
 }
