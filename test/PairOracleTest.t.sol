@@ -6,17 +6,21 @@ import "./ERC20Mintable.sol";
 // import "../src/interfaces/Vm.sol";
 import "../src/contracts/HySwapPair.sol";
 import "../src/libraries/UQ112x112.sol";
+import "../src/contracts/Factory.sol";
 
 contract PairOracleTest is Test{
     HySwapPair pair;
     ERC20Mintable token0;
     ERC20Mintable token1;
+    Factory factory;
 
     // 기본 설정
     function setUp() public {
         token0 = new ERC20Mintable("A", "TKA");
         token1 = new ERC20Mintable("B", "TKB");
-        pair = new HySwapPair(address(token0), address(token1));
+        factory = new Factory(address(this));
+
+        pair =  HySwapPair(factory.createPair(address(token0), address(token1)));
 
         token0.mint(10 ether, address(this));
         token1.mint(10 ether, address(this));
