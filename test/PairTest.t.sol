@@ -92,8 +92,18 @@ contract PairTest is Test{
         assertEq(token1.balanceOf(address(this)), 10 ether - 1000); //회수해간 토큰 개수 = 처음 공급했던거 - min
     }
 
-    function assertCumulativePrices(uint256 expectedPrice0, uint256 expectedPrice1) public {
-        assertEq(pair.price0CumulativeLast(), expectedPrice0,"unexpected cumulative price0");
-        assertEq(pair.price1CumulativeLast(), expectedPrice1,"unexpected cumulative price1");
+    // 스왑
+    function testSwap() public {
+        token0.transfer(address(pair), 1 ether); //PairTest에서 HySwapPair로 1개 전송 (유동성 공급)
+        token1.transfer(address(pair), 2 ether); //PairTest에서 HySwapPair로 2개 전송 (유동성 공급)
+        pair.mint(address(this)); // lp token +1
+
+        token0.transfer(address(pair), 0.1 ether); //PairTest에서 HySwapPair로 0.1개 전송 (유동성 공급)
+        pair.swap(0, 0.18 ether, address(this), "");
+
+        assertEq(token0.balanceOf(address(this)),10 ether - 1 ether - 0.1 ether,"unexpected token0 balance");
+        assertEq(token1.balanceOf(address(this)),10 ether - 2 ether - 0.18 ether,"unexpected token0 balance");
+
+        assertReserves(1 ether + 0.1 ether, 2 ether - 0.18 ether);
     }
 }
