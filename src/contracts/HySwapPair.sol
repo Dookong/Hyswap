@@ -16,7 +16,7 @@ error InsufficientOutputAmount();
 error InsufficientLiquidity();
 error InvalidK();
 
-contract HySwapPair is ERC20 {
+contract HySwapPair is ERC20, IHySwapPair {
     // 'using X for Y': 라이브러리의 함수 X를 타입 Y로 사용
     using UQ112x112 for uint224;
 
@@ -37,12 +37,21 @@ contract HySwapPair is ERC20 {
 
     address public factory;
 
-    constructor(address token0_, address token1_) ERC20("HySwapPair", "HY_V2", 18) {// test 용
+    // constructor(address token0_, address token1_) ERC20("HySwapPair", "HY_V2", 18) {// test 용
+    //     factory = msg.sender;
+    //     token0 = token0_;
+    //     token1 = token1_;
+    // }
+
+    constructor() ERC20("HySwapPair", "HY_V2", 18) {
         factory = msg.sender;
-        token0 = token0_;
-        token1 = token1_;
     }
 
+    function initialize(address _token0, address _token1) external {
+        require(msg.sender == factory, 'HySwap: FORBIDDEN'); // sufficient check
+        token0 = _token0;
+        token1 = _token1;
+    }
 
     function mint(address to) external returns (uint liquidity){
         (uint112 reserve0_, uint112 reserve1_, ) = getReserves();

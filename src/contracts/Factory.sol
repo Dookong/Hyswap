@@ -37,7 +37,6 @@ contract Factory is IFactory {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
         IHySwapPair(pair).initialize(token0, token1);
-        
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
         allPairs.push(pair);
@@ -52,5 +51,4 @@ contract Factory is IFactory {
         require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
         feeToSetter = _feeToSetter;
     }
-
 }

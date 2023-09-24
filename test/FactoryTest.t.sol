@@ -21,14 +21,10 @@ contract FactoryTest is Test {
     }
 
     function testCreatePair() public {
-        address pair = factory.createPair(address(token0), address(token1));
-        assertEq(pair, address(1));
+        factory.createPair(address(token0), address(token1));
+        factory.createPair(address(token0), address(token2));
+        factory.createPair(address(token1), address(token2));
+
+        assertEq(factory.allPairsLength(), 3);
     }
-
-
-
-
-
-
-
 }
