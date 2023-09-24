@@ -91,4 +91,9 @@ contract PairTest is Test{
         assertEq(token0.balanceOf(address(this)), 10 ether - 1000); //회수해간 토큰 개수 = 처음 공급했던거 - min
         assertEq(token1.balanceOf(address(this)), 10 ether - 1000); //회수해간 토큰 개수 = 처음 공급했던거 - min
     }
+
+    function assertCumulativePrices(uint256 expectedPrice0, uint256 expectedPrice1) public {
+        assertEq(pair.price0CumulativeLast(), expectedPrice0,"unexpected cumulative price0");
+        assertEq(pair.price1CumulativeLast(), expectedPrice1,"unexpected cumulative price1");
+    }
 }

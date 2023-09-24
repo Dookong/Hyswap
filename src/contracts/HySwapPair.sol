@@ -79,7 +79,7 @@ contract HySwapPair is ERC20{
         unchecked {
             uint32 timeElapsed = uint32(block.timestamp) - blockTimestampLast;
             
-            if (timeElapsed > 0 && _reserve0 > 0 && _reserve1 > 0) {
+            if (timeElapsed > 0 && reserve0_ > 0 && reserve1_ > 0) {
                 /*
                     price0CumulativeLast = 토큰0 대비 토큰1의 가격
                     price1CumulativeLast = 토큰1 대비 토큰0의 가격
@@ -88,8 +88,8 @@ contract HySwapPair is ERC20{
                 */
 
                 // timeElapsed를 곱해서 시간 가중 (time weighted)
-                price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed; 
-                price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
+                price0CumulativeLast += uint256(UQ112x112.encode(reserve1_).uqdiv(reserve0_)) * timeElapsed; 
+                price1CumulativeLast += uint256(UQ112x112.encode(reserve0_).uqdiv(reserve1_)) * timeElapsed;
             }
         }
 
