@@ -5,7 +5,10 @@ import "solmate/tokens/ERC20.sol";
 import "../interfaces/IERC20.sol";
 import "../libraries/Math.sol";
 
+// Errors
 error InsufficientLiquidityMinted();
+error InsufficientLiquidityBurned();
+error TransferFailed();
 
 contract HySwapPair is ERC20{
     uint constant MIN_LIQUIDITY = 1000;
@@ -24,8 +27,8 @@ contract HySwapPair is ERC20{
     function mint() public {
         Math math_module = new Math();
 
-        uint balance0 = IERC20(token0).balanceOf(address(this));
-        uint balance1 = IERC20(token1).balanceOf(address(this));
+        uint balance0 = IERC20(token0).balanceOf(address(this)); //pair 컨트랙트가 가지고 있는 token0의 개수
+        uint balance1 = IERC20(token1).balanceOf(address(this)); //pair 컨트랙트가 가지고 있는 token1의 개수
         uint amount0 = balance0 - reserve0;
         uint amount1 = balance1 - reserve1;
 
@@ -54,5 +57,18 @@ contract HySwapPair is ERC20{
     function _update(uint balance0, uint balance1) private {
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);
+    }
+
+    function burn() public {
+        uint balance0 = IERC20(token0).balanceOf(address(this)); //pair 컨트랙트가 가지고 있는 token0의 개수
+        uint balance1 = IERC20(token1).balanceOf(address(this)); //pair 컨트랙트가 가지고 있는 token1의 개수
+        uint liquidity = balanceOf[msg.sender]; // 호출자가 보유한 
+
+        uint amount0 = (liquidity * balance0) / totalSupply; //호출자가 가져갈 토큰의 양 = 
+        uint amount1 = (liquidity * balance1) / totalSupply;
+
+        if (amount0 <= 0 || amount1 <= 0) revert InsufficientLiquidityBurned(); // 예외 처리
+
+        _burn(msg.sender, liquidity);
     }
 }
