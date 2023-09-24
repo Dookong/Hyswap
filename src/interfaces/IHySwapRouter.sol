@@ -10,8 +10,7 @@ interface IHySwapRouter {
         uint amountBDesired,
         uint amountAMin,
         uint amountBMin,
-        address to,
-        uint deadline
+        address to
     ) external returns (uint amountA, uint amountB, uint liquidity);
 
     function removeLiquidity(
@@ -20,8 +19,7 @@ interface IHySwapRouter {
         uint liquidity,
         uint amountAMin,
         uint amountBMin,
-        address to,
-        uint deadline
+        address to
     ) external returns (uint amountA, uint amountB);
     
 }
