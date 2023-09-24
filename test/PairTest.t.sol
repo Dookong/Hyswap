@@ -55,4 +55,21 @@ contract PairTest is Test{
         assertEq(pair.balanceOf(address(this)), 3 ether - 1000); // total - minimum
         assertReserves(3 ether, 3 ether);
     }
+
+    // 1:1 비율에 안맞게 유동성 공급시
+    function testMintUnbalanced() public {
+        token0.transfer(address(pair), 1 ether); //PairTest에서 HySwapPair로 1개 전송
+        token1.transfer(address(pair), 1 ether); //PairTest에서 HySwapPair로 1개 전송
+
+        pair.mint(); //LP토큰 +1
+        assertEq(pair.balanceOf(address(this)), 1 ether - 1000);
+        assertReserves(1 ether, 1 ether);
+
+        token0.transfer(address(pair), 2 ether);
+        token1.transfer(address(pair), 1 ether);
+
+        pair.mint(); //LP토큰 +1 -> 2:1로 공급해도 lp는 똑같이 1개만 발행함!
+        assertEq(pair.balanceOf(address(this)), 2 ether - 1000);
+        assertReserves(3 ether, 2 ether);
+    }
 }
