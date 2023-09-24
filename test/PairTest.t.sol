@@ -72,4 +72,19 @@ contract PairTest is Test{
         assertEq(pair.balanceOf(address(this)), 2 ether - 1000);
         assertReserves(3 ether, 2 ether);
     }
+
+    // 소각
+    function testBurn() public {
+        token0.transfer(address(pair), 1 ether); //PairTest에서 HySwapPair로 1개 전송 (유동성 공급)
+        token1.transfer(address(pair), 1 ether); //PairTest에서 HySwapPair로 1개 전송 (유동성 공급)
+
+        pair.mint(); //LP토큰 +1
+        pair.burn(); //LP토큰 -1
+
+        assertEq(pair.balanceOf(address(this)), 0); //lp토큰 잔고 = 0
+        // assertReserves(1000, 1000); // ?
+        // assertEq(pair.totalSupply(), 1000); // 총 공급 1000개
+        // assertEq(token0.balanceOf(address(this)), 10 ether - 1000);
+        // assertEq(token1.balanceOf(address(this)), 10 ether - 1000);
+    }
 }
