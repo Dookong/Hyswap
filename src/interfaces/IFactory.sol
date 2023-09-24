@@ -1,6 +1,6 @@
 pragma solidity ^0.8.13;
 
-interface Factory {
+interface IFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
     function feeTo() external view returns (address);
