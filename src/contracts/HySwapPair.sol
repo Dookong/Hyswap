@@ -44,9 +44,15 @@ contract HySwapPair is ERC20{
 
         if (liquidity <= 0) revert InsufficientLiquidityMinted();
         _mint(msg.sender, liquidity);
+        _update(balance0, balance1);
     }
 
     function getReserves() public view returns (uint112, uint112, uint32){
         return (reserve0, reserve1, 0);
+    }
+
+    function _update(uint balance0, uint balance1) private {
+        reserve0 = uint112(balance0);
+        reserve1 = uint112(balance1);
     }
 }
