@@ -15,3 +15,25 @@ docs/
 
 # Libraries
 lib/
+
+# macOS
+.DS_Store
+
+# Solidity
+build/
+contracts/
+
+# Mocha
+mocha.opts
+
+# Node
+node_modules/
+
+# Truffle
+truffle.js
+
+# artifacts
+artifacts/
+
+
+```
