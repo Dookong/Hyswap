@@ -5,7 +5,7 @@ import "../contracts/HySwapPair.sol";
 
 library HySwapLibrary{
 
-    // 
+    // sortTokens 함수는 토큰 A와 토큰 B를 정렬하는 함수
     function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
         require(tokenA != tokenB, 'HySwapLibrary: IDENTICAL_ADDRESSES');
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
@@ -22,17 +22,16 @@ library HySwapLibrary{
             keccak256(type(HySwapPair).creationCode) // init code hash 
         )))));
     }
-
+    // getReserves 함수는 토큰 A와 토큰 B의 개수 반환
     function getReserves(address factory, address tokenA, address tokenB) internal view returns (uint reserveA, uint reserveB) {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
         (uint reserve0, uint reserve1,) = IHySwapPair(pairFor(factory, token0, token1)).getReserves();
         (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
     }
-
-    function quote(uint amountA, uint reserveA, uint reserveB) internal pure returns (uint amountB) {
+    // quote 함수는 기존 유동성 내의 토큰 비율과 맞추기 위한 함수
+    function quote(uint amountA, uint reserveA, uint reserveB) internal pure returns (uint amountB) { 
         require(amountA > 0, 'UniswapV2Library: INSUFFICIENT_AMOUNT');
         require(reserveA > 0 && reserveB > 0, 'UniswapV2Library: INSUFFICIENT_LIQUIDITY');
         amountB = (amountA * (reserveB)) / reserveA;
     }
-
 }
