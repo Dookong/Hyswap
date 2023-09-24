@@ -4,6 +4,8 @@ pragma solidity ^0.8.13;
 import "solmate/tokens/ERC20.sol";
 import "../interfaces/IERC20.sol";
 import "../libraries/Math.sol";
+import "../libraries/UQ112x112.sol";
+
 
 // Errors
 error InsufficientLiquidityMinted();
@@ -14,13 +16,23 @@ error InsufficientLiquidity();
 error InvalidK();
 
 contract HySwapPair is ERC20{
+    // 'using X for Y': 라이브러리의 함수 X를 타입 Y로 사용
+    using UQ112x112 for uint224;
+
     uint constant MIN_LIQUIDITY = 1000;
 
+    // 토큰 잔액 -> 가스비 절감을 위해 uint112로 저장함
     uint112 private reserve0;
     uint112 private reserve1;
 
+    // 페어의 토큰 주소
     address public token0;
     address public token1;
+
+    // TWAP 계산을 위해 필요한 변수
+    uint public price0CumulativeLast;
+    uint public price1CumulativeLast;
+    uint32 private blockTimestampLast; // 마지막 스왑의 timestamp를 기록
 
     constructor(address token0_, address token1_) ERC20("HySwapPair", "HY_V2", 18) {
         token0 = token0_;
@@ -59,8 +71,34 @@ contract HySwapPair is ERC20{
     }
 
     function _update(uint balance0, uint balance1, uint112 reserve0_, uint112 reserve1_) private {
+        require(balance0 <= type(uint112).max && balance1 <= type(uint112).max, "OVERFLOW");
+
+        // unchecked keyword: 솔리디티 0.8.0 이상부터 사용 가능
+        // 런타임시에 자동 오버/언더플로우 체크 해제
+        // 검사안하는 이유? 변화를 감지하기 위한 용도라서 절대값이 자동으로 초기화되면 오히려 좋다
+        unchecked {
+            uint32 timeElapsed = uint32(block.timestamp) - blockTimestampLast;
+            
+            if (timeElapsed > 0 && _reserve0 > 0 && _reserve1 > 0) {
+                /*
+                    price0CumulativeLast = 토큰0 대비 토큰1의 가격
+                    price1CumulativeLast = 토큰1 대비 토큰0의 가격
+                    UQ112x112.encode() => reserve 값을 고정 소수점 형태로 인코딩
+                    UQ112x112.uqdiv() => 두 reserve 간의 비율을 계산
+                */
+
+                // timeElapsed를 곱해서 시간 가중 (time weighted)
+                price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed; 
+                price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
+            }
+        }
+
+        // reserve값 업데이트
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);
+
+        // blockTimestampLast 최신화
+        blockTimestampLast = uint32(block.timestamp);
     }
 
     function _safeTransfer(address token, address to, uint256 value) private {
