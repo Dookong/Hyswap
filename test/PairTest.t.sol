@@ -4,17 +4,22 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "./ERC20Mintable.sol";
 import "../src/contracts/HySwapPair.sol";
+import "../src/contracts/Factory.sol";
+
 
 contract PairTest is Test{
     HySwapPair pair;
     ERC20Mintable token0;
     ERC20Mintable token1;
+    Factory factory;
+
 
     // 기본 설정
     function setUp() public {
         token0 = new ERC20Mintable("A", "TKA");
         token1 = new ERC20Mintable("B", "TKB");
-        pair = new HySwapPair(address(token0), address(token1));
+        factory = new Factory(address(this));
+        pair = HySwapPair(factory.createPair(address(token0), address(token1)));
 
         token0.mint(10 ether, address(this));
         token1.mint(10 ether, address(this));
@@ -23,8 +28,10 @@ contract PairTest is Test{
     // 풀에 예치된 토큰 개수 확인
     function assertReserves(uint112 expectedReserve0, uint112 expectedReserve1) internal {
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-        assertEq(reserve0, expectedReserve0, "unexpected reserve0");
-        assertEq(reserve1, expectedReserve1, "unexpected reserve1");
+        (uint112 _reserve0, uint112 _reserve1) = address(token0) < address(token1) 
+        ? (reserve0, reserve1) : (reserve1, reserve0);
+        assertEq(_reserve0, expectedReserve0, "unexpected reserve0");
+        assertEq(_reserve1, expectedReserve1, "unexpected reserve1");
     }
 
     // 최초 유동성 공급시
