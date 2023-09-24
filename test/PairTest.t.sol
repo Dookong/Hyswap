@@ -85,10 +85,10 @@ contract PairTest is Test{
         pair.transfer(address(pair), liquidity); //풀에 lp token 반납
         pair.burn(address(this)); // pair가 PairTest에게 맡겼던 토큰 돌려줌
 
-        // assertEq(pair.balanceOf(address(this)), 0); // pair의 lp토큰 잔고 = 0 <- 소각했으니까
-        // assertReserves(1000, 1000); // ?
-        // assertEq(pair.totalSupply(), 1000); // 총 공급 1000개
-        // assertEq(token0.balanceOf(address(this)), 10 ether - 1000);
-        // assertEq(token1.balanceOf(address(this)), 10 ether - 1000);
+        assertEq(pair.balanceOf(address(this)), 0); // pair의 lp토큰 잔고 = 0 <- 소각했으니까
+        assertReserves(1000, 1000); // 미니멈이 1000개는 회수 못해서 풀에 남아 있음
+        assertEq(pair.totalSupply(), 1000); // min == 1000
+        assertEq(token0.balanceOf(address(this)), 10 ether - 1000); //회수해간 토큰 개수 = 처음 공급했던거 - min
+        assertEq(token1.balanceOf(address(this)), 10 ether - 1000); //회수해간 토큰 개수 = 처음 공급했던거 - min
     }
 }
