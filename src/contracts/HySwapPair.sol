@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "solmate/tokens/ERC20.sol";
+import "../../lib/solmate/src/tokens/ERC20.sol";
 import "../interfaces/IERC20.sol";
 import "../libraries/Math.sol";
 import "../libraries/UQ112x112.sol";
+import "../interfaces/IHySwapPair.sol";
 
 
 // Errors
@@ -15,7 +16,7 @@ error InsufficientOutputAmount();
 error InsufficientLiquidity();
 error InvalidK();
 
-contract HySwapPair is ERC20{
+contract HySwapPair is ERC20 {
     // 'using X for Y': 라이브러리의 함수 X를 타입 Y로 사용
     using UQ112x112 for uint224;
 
@@ -34,10 +35,14 @@ contract HySwapPair is ERC20{
     uint public price1CumulativeLast;
     uint32 private blockTimestampLast; // 마지막 스왑의 timestamp를 기록
 
-    constructor(address token0_, address token1_) ERC20("HySwapPair", "HY_V2", 18) {
+    address public factory;
+
+    constructor(address token0_, address token1_) ERC20("HySwapPair", "HY_V2", 18) {// test 용
+        factory = msg.sender;
         token0 = token0_;
         token1 = token1_;
     }
+
 
     function mint(address to) external returns (uint liquidity){
         (uint112 reserve0_, uint112 reserve1_, ) = getReserves();
