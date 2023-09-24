@@ -21,7 +21,6 @@ lib/
 
 # Solidity
 build/
-contracts/
 
 # Mocha
 mocha.opts
@@ -34,6 +33,4 @@ truffle.js
 
 # artifacts
 artifacts/
-
-
 ```
