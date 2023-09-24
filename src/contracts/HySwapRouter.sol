@@ -80,8 +80,8 @@ contract HySwapRouter  {
         // 유저의 lp토큰을 pair contract에서 소각하고, 상응하는 토큰을 유저에게 전송해야 한다. 
         address pair  = HySwapLibrary.pairFor(factory, tokenA, tokenB);
 
-        HySwapPair(pair).transferFrom(msg.sender, address(this), liquidity); // 유저의 lp토큰을 pair contract에서 가져온다.
-       (amountA, amountB) = HySwapPair(pair).burn(address(this)); // pair contract에서 lp토큰을 소각한다.
+        HySwapPair(pair).transferFrom(msg.sender, pair, liquidity); // msg.sender에서 pair contract에 보낸다.  
+       (amountA, amountB) = HySwapPair(pair).burn(to); // pair contract에서 lp토큰을 소각한다.
 
         if(amountA < amountAMin){// 유동성에 해당하는 토큰의 양이 유저가 최소한으로 받고자 하는 토큰의 양보다 적으면
             revert InsufficientAAmount(); // 에러를 발생시킨다.

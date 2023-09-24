@@ -7,7 +7,7 @@ import "../src/contracts/HySwapPair.sol";
 import "../src/contracts/Factory.sol";
 
 
-contract HySwapRouterTest is Test {
+contract AddLiquidityTest is Test {
     ERC20Mintable public tokenA;
     ERC20Mintable public tokenB;
 
@@ -159,6 +159,4 @@ contract HySwapRouterTest is Test {
         assertEq(amountB, 0.9 ether);
         assertEq(liquidity, 1272792206135785543);
     }
-
-
 }
