@@ -10,6 +10,7 @@
 
 ## 테스트
 ```shell
+git submodule update --init --recursive
 yarn
 yarn hardhat compile
 yarn hardhat test test/Exchange.ts 
