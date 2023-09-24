@@ -13,9 +13,6 @@ docs/
 # Dotenv file
 .env
 
-# Libraries
-lib/
-
 # macOS
 .DS_Store
 
