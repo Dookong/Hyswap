@@ -8,17 +8,17 @@ import "../libraries/UQ112x112.sol";
 import "../interfaces/IHySwapPair.sol";
 
 
-// Errors
-error InsufficientLiquidityMinted();
-error InsufficientLiquidityBurned();
-error TransferFailed();
-error InsufficientOutputAmount();
-error InsufficientLiquidity();
-error InsufficientInputAmount();
-error InvalidK();
 
 contract HySwapPair is ERC20, IHySwapPair {
-    event DebugK(uint a, uint a_, uint b, uint b_);
+    // Errors
+    error InsufficientLiquidityMinted();
+    error InsufficientLiquidityBurned();
+    error TransferFailed();
+    error InsufficientOutputAmount();
+    error InsufficientLiquidity();
+    error InvalidK();
+
+
     // 'using X for Y': 라이브러리의 함수 X를 타입 Y로 사용
     using UQ112x112 for uint224;
 
