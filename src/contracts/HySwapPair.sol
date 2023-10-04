@@ -14,9 +14,11 @@ error InsufficientLiquidityBurned();
 error TransferFailed();
 error InsufficientOutputAmount();
 error InsufficientLiquidity();
+error InsufficientInputAmount();
 error InvalidK();
 
 contract HySwapPair is ERC20, IHySwapPair {
+    event DebugK(uint a, uint a_, uint b, uint b_);
     // 'using X for Y': 라이브러리의 함수 X를 타입 Y로 사용
     using UQ112x112 for uint224;
 
@@ -114,6 +116,7 @@ contract HySwapPair is ERC20, IHySwapPair {
         // blockTimestampLast 최신화
         blockTimestampLast = uint32(block.timestamp);
     }
+    
 
     function _safeTransfer(address token, address to, uint256 value) private {
         (bool success, bytes memory data) = token.call(abi.encodeWithSignature("transfer(address,uint256)", to, value));
@@ -148,27 +151,75 @@ contract HySwapPair is ERC20, IHySwapPair {
         _update(balance0, balance1, reserve0_, reserve1_); //풀에 잔존하는 토큰 개수 업데이트
     }
 
-    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external{
+    function swap(
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address to,
+        bytes calldata data
+    ) public {
         if (amount0Out == 0 && amount1Out == 0)
             revert InsufficientOutputAmount();
-        
-        (uint112 reserve0_, uint112 reserve1_, ) = getReserves(); // 풀에 예치되어 있는 토큰 개수
 
-        if (amount0Out > reserve0_ || amount1Out > reserve1_) // 내줘야 할 양보다 예치된 양이 적으면 에러 발생
+        (uint112 reserve0_, uint112 reserve1_, ) = getReserves();
+
+        if (amount0Out > reserve0_ || amount1Out > reserve1_)
             revert InsufficientLiquidity();
-        
-        // 스왑 후 잔고 = 기존 잔고 - out
-        uint balance0 = IERC20(token0).balanceOf(address(this)) - amount0Out;
-        uint balance1 = IERC20(token1).balanceOf(address(this)) - amount1Out;
 
-        //Constant Product 체크 -> 스왑 후의 K >= 스왑 전의 K
+        uint256 balance0 = IERC20(token0).balanceOf(address(this)) - amount0Out;
+        uint256 balance1 = IERC20(token1).balanceOf(address(this)) - amount1Out;
+
+        emit DebugK(balance0, reserve0_, balance1, reserve1_);
+
         if (balance0 * balance1 < uint256(reserve0_) * uint256(reserve1_))
             revert InvalidK();
-        
-        _update(balance0, balance1, reserve0_, reserve1_); //풀에 잔존하는 토큰 개수 업데이트
 
-        if (amount0Out > 0) _safeTransfer(token0, to, amount0Out); // out만큼 지급
+        _update(balance0, balance1, reserve0_, reserve1_);
+
+        if (amount0Out > 0) _safeTransfer(token0, to, amount0Out);
         if (amount1Out > 0) _safeTransfer(token1, to, amount1Out);
+    }
+
+    function swap2(
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address to,
+        bytes calldata data
+    ) public {
+        if (amount0Out == 0 && amount1Out == 0)
+            revert InsufficientOutputAmount();
+
+        (uint112 reserve0_, uint112 reserve1_, ) = getReserves();
+
+        if (amount0Out > reserve0_ || amount1Out > reserve1_)
+            revert InsufficientLiquidity();
+
+        if (amount0Out > 0) _safeTransfer(token0, to, amount0Out);
+        if (amount1Out > 0) _safeTransfer(token1, to, amount1Out);
+
+        uint256 balance0 = IERC20(token0).balanceOf(address(this));
+        uint256 balance1 = IERC20(token1).balanceOf(address(this));
+
+        uint256 amount0In = balance0 > reserve0 - amount0Out
+            ? balance0 - (reserve0 - amount0Out)
+            : 0;
+        uint256 amount1In = balance1 > reserve1 - amount1Out
+            ? balance1 - (reserve1 - amount1Out)
+            : 0;
+
+        if (amount0In == 0 && amount1In == 0) revert InsufficientInputAmount();
+
+        // Adjusted = balance before swap - swap fee; fee stays in the contract
+        uint256 balance0Adjusted = (balance0 * 1000) - (amount0In * 3);
+        uint256 balance1Adjusted = (balance1 * 1000) - (amount1In * 3);
+
+        emit DebugK(balance0, balance0 - (reserve0 - amount0Out), balance1, balance1 - (reserve1 - amount1Out));
+
+        if (
+            balance0Adjusted * balance1Adjusted <
+            uint256(reserve0_) * uint256(reserve1_) * (1000**2)
+        ) revert InvalidK();
+
+        _update(balance0, balance1, reserve0_, reserve1_);
     }
 
     function sync() public {
