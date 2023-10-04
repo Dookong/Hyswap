@@ -6,14 +6,11 @@ import "../libraries/TransferHelper.sol";
 import "../interfaces/IFactory.sol";
 import "../contracts/HySwapPair.sol";
 
-
-
-error InsufficientAAmount();
-error InsufficientBAmount();
-
-
 contract HySwapRouter  {
-
+    error InsufficientAAmount();
+    error InsufficientBAmount();
+    error InsufficientOutputAmount();
+    error ExcessiveInputAmount();
     address public immutable factory;
 
     constructor(address hySwapFactory) {
@@ -88,6 +85,43 @@ contract HySwapRouter  {
         }
         if(amountB < amountBMin){
             revert InsufficientBAmount();
+        }
+    }
+
+    //  input이 정확히 알 때 사용하는 swap함수.
+    function swapExactTokensForTokens(
+        uint256 amountIn, // 유저가 보내고자 하는 토큰의 양
+        uint256 amountOutMin, // 유저가 최소한으로 받고자 하는 토큰의 양
+        address[] calldata path, // 토큰 주소들이 들어있는 배열
+        address to // 유저의 주소
+    ) public returns (uint256 [] memory amounts) {
+        amounts = HySwapLibrary.getAmountsOut(factory, amountIn, path); // path의 모든 amountsout을 return한다.
+        if(amounts[amounts.length - 1] < amountOutMin) revert InsufficientOutputAmount(); // 유저가 최소한으로 받고자 하는 토큰의 양보다 적으면 에러를 발생시킨다.
+        TransferHelper.safeTransferFrom(path[0], msg.sender, HySwapLibrary.pairFor(factory, path[0], path[1]), amounts[0]); // 유저가 보내고자 하는 토큰의 양을 pair contract로 전송한다.
+        _swap(amounts, path, to); // 토큰을 토큰으로 스왑한다.
+    }
+    // output이 정확히 알 때 사용하는 swap함수. 
+    function swapTokensForExactTokens(
+        uint256 amountOut, 
+        uint256 amountInMax, 
+        address[] calldata path, 
+        address to
+    ) public returns (uint256[] memory amounts) {
+        amounts = HySwapLibrary.getAmountsIn(factory, amountOut, path); // path의 모든 amountsin을 return한다.
+        if(amounts[amounts.length - 1] > amountInMax) revert ExcessiveInputAmount(); // 유저가 최대한으로 보내고자 하는 토큰의 양보다 많으면 에러를 발생시킨다.
+        TransferHelper.safeTransferFrom(path[0], msg.sender, HySwapLibrary.pairFor(factory, path[0], path[1]), amounts[0]); // 유저가 보내고자 하는 토큰의 양을 pair contract로 전송한다.
+        _swap(amounts, path, to); // 토큰을 토큰으로 스왑한다.      
+    }
+
+// path을 따라서 하나씩 swap해 나가는 함수이다.
+    function _swap(uint256[] memory amounts, address[] memory path, address to_) internal {
+        for (uint256 i; i < path.length - 1; i++){
+            (address input, address output) = (path[i], path[i + 1]);
+            (address token0,) = HySwapLibrary.sortTokens(input, output);
+            uint256 amountOut = amounts[i + 1];
+            (uint256 amount0Out, uint256 amount1Out) = input == token0 ? (uint256(0), amountOut) : (amountOut, uint256(0));
+            address to = i < path.length - 2 ? HySwapLibrary.pairFor(factory, output, path[i + 2]) : to_;
+            HySwapPair(HySwapLibrary.pairFor(factory, input, output)).swap(amount0Out, amount1Out, to, new bytes(0));
         }
     }
 }
