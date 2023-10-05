@@ -97,11 +97,11 @@ public pure returns (uint256) {
 이를 수식으로 정리하면 아래와 같다.
 
 $$
-1. LP_{발행} = \sqrt{token_x * token_y}
+LP_{발행} = \sqrt{token_x * token_y}
 $$
 
 $$
-2. LP_{발행} = Total_{LP} * Token_{공급}/Reserve
+LP_{발행} = Total_{LP} * Token_{공급}/Reserve
 $$
 
 그리고 이를 다시 Solidity 코드로 작성하면 아래와 같다.
