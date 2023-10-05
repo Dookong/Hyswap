@@ -16,6 +16,7 @@ contract HySwapPair is ERC20, IHySwapPair {
     error TransferFailed();
     error InsufficientOutputAmount();
     error InsufficientLiquidity();
+    error InsufficientInputAmount();
     error InvalidK();
 
 
@@ -168,7 +169,6 @@ contract HySwapPair is ERC20, IHySwapPair {
         uint256 balance0 = IERC20(token0).balanceOf(address(this)) - amount0Out;
         uint256 balance1 = IERC20(token1).balanceOf(address(this)) - amount1Out;
 
-        emit DebugK(balance0, reserve0_, balance1, reserve1_);
 
         if (balance0 * balance1 < uint256(reserve0_) * uint256(reserve1_))
             revert InvalidK();
@@ -212,7 +212,6 @@ contract HySwapPair is ERC20, IHySwapPair {
         uint256 balance0Adjusted = (balance0 * 1000) - (amount0In * 3);
         uint256 balance1Adjusted = (balance1 * 1000) - (amount1In * 3);
 
-        emit DebugK(balance0, balance0 - (reserve0 - amount0Out), balance1, balance1 - (reserve1 - amount1Out));
 
         if (
             balance0Adjusted * balance1Adjusted <
