@@ -23,7 +23,8 @@
 1. `git clone https://github.com/Dookong/Hyswap.git`
 2. `curl -L https://foundry.paradigm.xyz | bash`
 3. `foundryup`
-4. `forge test`
+4. `cd Hyswap`
+5. `forge test`
 
 ## 배포
 

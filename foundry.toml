@@ -3,6 +3,6 @@ src = "src"
 out = "out"
 libs = ["lib"]
 # expected format(example below): libraries = ["<path>:<lib name>:<address>"]
-libraries = ["src/libraries/HySwapLibrary.sol:HySwapLibrary:0xdCb526b29B49e49F807467e0f0C1Bb60b9AdF494"]
+# libraries = ["src/libraries/HySwapLibrary.sol:HySwapLibrary:0xdCb526b29B49e49F807467e0f0C1Bb60b9AdF494"]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options  
